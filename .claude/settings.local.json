@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m app.models)",
+      "Bash(python -m app.physics)",
+      "Bash(python -m app.pomdp)",
+      "Bash(python -m app.reward)",
+      "Bash(python -m app.safety)",
+      "Bash(python -m app.environment)",
+      "Bash(python -m app.tasks)",
+      "Bash(python -m app.grader)",
+      "Bash(python -m app.baseline_agent)",
+      "Bash(python -m tests.test_env)"
+    ]
+  }
+}

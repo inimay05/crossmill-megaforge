@@ -1,0 +1,26 @@
+name: crossmill-megaforge
+version: '1.0.0'
+description: >
+  CrossMill MegaForge is a POMDP RL environment simulating blast-furnace
+  steel production. The agent controls oxygen flow, blast temperature,
+  coke / ore feed rates, limestone addition, tapping schedule, and
+  temperature ramp rate to produce steel with target carbon content while
+  minimising energy, emissions, and thermal stress. Physics: 1D three-zone
+  furnace ODE with Fe2O3 + 3CO reduction kinetics; partial observability
+  via delayed chemistry assays and tapping-gated hearth state; non-stationary
+  via ore-supplier regime switches and refractory wear accumulation.
+tasks:
+  - id: easy
+    description: Steady-state iron production - constant ore/coke ratios, 200 steps.
+    difficulty: easy
+  - id: medium
+    description: Dynamic burden control - stochastic inputs, delayed assays, 1 regime switch.
+    difficulty: medium
+  - id: hard
+    description: Campaign-end optimisation - 2000 steps, supplier switching, refractory decay, forced maintenance window.
+    difficulty: hard
+observation_space: See app/models.py Observation
+action_space:      See app/models.py Action
+entrypoint: app.environment:MegaForgeEnv
+author: crossmill-team
+tags: [openenv, reinforcement-learning, manufacturing, pomdp, industrial, steel]
