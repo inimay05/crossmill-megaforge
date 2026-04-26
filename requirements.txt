@@ -1,4 +1,6 @@
 openenv-core
+fastapi
+uvicorn
 numpy==1.26.4
 scipy==1.13.1
 gymnasium==0.29.1
