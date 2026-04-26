@@ -9,10 +9,9 @@ import copy
 import numpy as np
 
 try:
-    from openenv import Env
+    from openenv.core import Environment as Env
 except ImportError:
-    class Env:                    # minimal stub so the module loads without openenv
-        def __init__(self): pass
+    Env = object  # type: ignore[assignment, misc]
 
 from app.config import (TASK_CONFIG, STEP_INTERVAL_S, STATE_DIM, ACTION_DIM,
                         RANGES, ACTION_RANGES)
@@ -65,7 +64,7 @@ class MegaForgeEnv(Env):
 
     # ------------------------------------------------------------------ #
 
-    def reset(self, seed=None) -> Observation:
+    def reset(self, seed=None, episode_id=None, **kwargs) -> Observation:
         self.rng = np.random.default_rng(
             seed if seed is not None else self._seed)
 
@@ -185,9 +184,10 @@ class MegaForgeEnv(Env):
             'raw_state':               dict(self.raw_state),
         }
 
+        info['reward_breakdown'] = reward.model_dump()
         return StepResponse(
             observation=obs,
-            reward=reward,
+            reward=reward.value,
             done=done,
             truncated=truncated,
             info=info,
@@ -299,6 +299,26 @@ class MegaForgeEnv(Env):
 
     # ------------------------------------------------------------------ #
 
+    @property
+    def state(self):
+        """OpenEnv Environment.state abstract property — returns lightweight state."""
+        try:
+            from openenv.core.env_server.types import State
+            return State(step_count=self.step_idx)
+        except Exception:
+            return {'step_count': self.step_idx}
+
+    def get_metadata(self):
+        try:
+            from openenv.core.env_server.types import EnvironmentMetadata
+            return EnvironmentMetadata(
+                name=self.name,
+                description='CrossMill MegaForge — blast furnace steel production POMDP.',
+                version=self.version,
+            )
+        except Exception:
+            return {'name': self.name, 'version': self.version}
+
     def close(self):
         pass
 
@@ -328,7 +348,7 @@ if __name__ == '__main__':
     while True:
         a = rng.random(ACTION_DIM).tolist()
         resp = env.step(a)
-        total_r += resp.reward.value
+        total_r += resp.reward
         steps   += 1
         if resp.info.get('tapping_just_occurred'):
             tap_events += 1
@@ -348,11 +368,12 @@ if __name__ == '__main__':
     print(f'  final thermal_str  = {resp.info["raw_state"]["thermal_stress"]:.4f}')
     print(f'  final hot_metal_T  = {resp.info["raw_state"]["hot_metal_temp_C"]:.2f}')
     print(f'  final co_co2       = {resp.info["raw_state"]["co_co2_ratio"]:.4f}')
+    _bd = resp.info.get('reward_breakdown', {})
     print(f'  reward breakdown:')
-    print(f'    dense_progress   = {resp.reward.breakdown.dense_progress:.4f}')
-    print(f'    terminal_score   = {resp.reward.breakdown.terminal_score:.4f}')
-    print(f'    safety_penalty   = {resp.reward.breakdown.safety_penalty:.4f}')
-    print(f'    total            = {resp.reward.value:.4f}')
+    print(f'    dense_progress   = {_bd.get("dense_progress", 0.0):.4f}')
+    print(f'    terminal_score   = {_bd.get("terminal_score", 0.0):.4f}')
+    print(f'    safety_penalty   = {_bd.get("safety_penalty", 0.0):.4f}')
+    print(f'    total            = {resp.reward:.4f}')
 
     # ---- Run a second episode with a conservative no-op action ----------- #
     print('\n--- Conservative no-op agent (200 steps) ---')
@@ -363,7 +384,7 @@ if __name__ == '__main__':
     resp2 = None
     while True:
         resp2 = env2.step(noop)
-        total_r2 += resp2.reward.value
+        total_r2 += resp2.reward
         steps2   += 1
         if resp2.info.get('tapping_just_occurred'):
             taps2 += 1

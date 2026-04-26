@@ -37,8 +37,8 @@ def test_step_contract():
     assert isinstance(resp, StepResponse), "Step must return StepResponse"
     assert isinstance(resp.done, bool), "done must be bool"
     assert isinstance(resp.truncated, bool), "truncated must be bool"
-    assert -1.5 <= resp.reward.value <= 1.5, \
-        f"reward {resp.reward.value} out of [-1.5, 1.5]"
+    assert -1.5 <= resp.reward <= 1.5, \
+        f"reward {resp.reward} out of [-1.5, 1.5]"
     for key in ('safety_violation', 'regime_id', 'raw_state',
                 'tapping_just_occurred'):
         assert key in resp.info, f"Missing key '{key}' in info dict"
@@ -53,7 +53,7 @@ def test_determinism_under_seed():
         rewards = []
         for _ in range(50):
             resp = env.step([0.50] * ACTION_DIM)
-            rewards.append(resp.reward.value)
+            rewards.append(resp.reward)
             if resp.done:
                 break
         return rewards

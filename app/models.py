@@ -36,6 +36,11 @@ class Observation(BaseModel):
     tapping_just_occurred: bool
     valid_actions: List[str]
 
+    # OpenEnv-required flat fields (populated by the HTTP server layer) ──────
+    reward:   Optional[float] = Field(default=None)
+    done:     bool            = Field(default=False)
+    metadata: dict            = Field(default_factory=dict)
+
     model_config = {
         'json_schema_extra': {
             'example': {
@@ -144,7 +149,7 @@ class StepResponse(BaseModel):
     """What env.step() returns (OpenEnv-compatible)."""
 
     observation: Observation
-    reward: Reward
+    reward: float
     done: bool
     truncated: bool
     info: dict = Field(default_factory=dict)
@@ -178,15 +183,7 @@ class StepResponse(BaseModel):
                     'tapping_just_occurred': False,
                     'valid_actions': ['NORMAL'],
                 },
-                'reward': {
-                    'value': 0.025,
-                    'breakdown': {
-                        'dense_progress': 0.025,
-                        'terminal_score': 0.0,
-                        'safety_penalty': 0.0,
-                        'total': 0.025,
-                    }
-                },
+                'reward': 0.025,
                 'done': False,
                 'truncated': False,
                 'info': {

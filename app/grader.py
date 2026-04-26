@@ -56,7 +56,7 @@ def run_episode(env: MegaForgeEnv, policy: Callable,
         a = policy(obs)
         resp = env.step(a)
         obs = resp.observation
-        total_r += resp.reward.value
+        total_r += resp.reward
         steps += 1
 
         if resp.info.get('tapping_just_occurred'):
